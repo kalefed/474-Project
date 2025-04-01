@@ -490,6 +490,8 @@ class CoverageGridworld(gym.Env):
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
 
+        print(action)
+
         return self.get_state(), reward(info), terminated, False, info
 
     def __move(self, action: int):
