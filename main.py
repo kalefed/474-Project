@@ -95,10 +95,10 @@ maps = [
 # Parallel environments for training
 print("TRAINING")
 
-vec_env = make_vec_env("just_go", n_envs=4)
+vec_env = make_vec_env("safe", n_envs=4)
 
 # Define the policy kwargs for QRDQN
-policy_kwargs = dict(n_quantiles=50)
+policy_kwargs = dict(n_quantiles=100)
 
 # Create and train the QRDQN model
 model = QRDQN(
@@ -108,19 +108,19 @@ model = QRDQN(
     verbose=1,
 )
 model.learn(total_timesteps=10_000, log_interval=4)
-model.save("qrdqn_just_go")
+model.save("qrdqn_safe")
 
 # Single environment for testing
 print("TESTING")
 
 env = gym.make(
-    "just_go",
+    "safe",
     render_mode="human",
     predefined_map_list=None,
     activate_game_status=True,
 )
 # Load the trained model (this will be used during gameplay)
-model = QRDQN.load("qrdqn_just_go")
+model = QRDQN.load("qrdqn_safe")
 
 num_episodes = 5
 total_reward = 0
@@ -135,7 +135,7 @@ for i in range(num_episodes):
         total_reward += reward
 
         # Sleep may be used to allow each step to be visualized. Value can be changed
-        time.sleep(0.2)
+        # time.sleep(0.2)
 
     if done:
         time.sleep(2)

@@ -60,7 +60,23 @@ def reward(info: dict) -> float:
     reward = 0
 
     # If the cell the agent is visiting has already been visited penalize it to encourage exploration
-    if not new_cell_covered:
+    
+    # if cells_remaining/coverable_cells > 0.50:
+       
+        
+        
+    if new_cell_covered:
+        reward += 1.0
+    else:
         reward -= 0.1
+
+    if game_over:
+        if cells_remaining == 0:
+            reward += 10.0
+        else:
+            reward -= 10.0
+            
+    # TODO - 
+    
 
     return reward
