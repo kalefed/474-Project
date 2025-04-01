@@ -57,4 +57,10 @@ def reward(info: dict) -> float:
     # IMPORTANT: You may design a reward function that uses just some of these values. Experiment with different
     # rewards and find out what works best for the algorithm you chose given the observation space you are using
 
-    return 0
+    reward = 0
+
+    # If the cell the agent is visiting has already been visited penalize it to encourage exploration
+    if not new_cell_covered:
+        reward -= 0.1
+
+    return reward
