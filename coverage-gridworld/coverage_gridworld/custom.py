@@ -1,31 +1,27 @@
 import numpy as np
-import gymnasium as gym
+from gymnasium.spaces import Box
 
 """
 Feel free to modify the functions below and experiment with different environment configurations.
 """
 
+def observation_space(env):
+    """Defines a 5x5 RGB observation space"""
+    return Box(low=0, high=255, shape=(5,5,3), dtype=np.uint8)
 
-def observation_space(env: gym.Env) -> gym.spaces.Space:
-    """
-    Observation space from Gymnasium (https://gymnasium.farama.org/api/spaces/)
-    """
-    # The grid has (10, 10, 3) shape and can store values from 0 to 255 (uint8). To use the whole grid as the
-    # observation space, we can consider a MultiDiscrete space with values in the range [0, 256).
-    shape = env.grid.shape # should be (10, 10, 3)
-    nvec = np.full(shape, 256, dtype=np.int32)# Each cell can have values 0–255
-    return gym.spaces.MultiDiscrete(nvec.flatten())
-
-
-def observation(grid: np.ndarray):
-    """
-    Function that returns the observation for the current state of the environment.
-    """
-    # If the observation returned is not the same shape as the observation_space, an error will occur!
-    # Make sure to make changes to both functions accordingly.
-    return grid.flatten().astype(np.int32)
-
+def observation(grid):
+    """Returns a 5x5 grid around the agent"""
+    # 1. Always return something, even if broken
+    if grid is None:
+        return np.zeros((5,5,3), dtype=np.uint8)
     
+    # 2. Simple 5x5 view (with edge padding)
+    try:
+        y, x = np.argwhere(np.all(grid == [160,161,161], axis=-1))[0]
+        padded = np.pad(grid, ((2,2),(2,2),(0,0)), mode='constant')
+        return padded[y:y+5, x:x+5]
+    except:
+        return np.zeros((5,5,3), dtype=np.uint8)
 
 
 def reward(info: dict) -> float:
@@ -58,12 +54,7 @@ def reward(info: dict) -> float:
     # IMPORTANT: You may design a reward function that uses just some of these values. Experiment with different
     # rewards and find out what works best for the algorithm you chose given the observation space you are using
 
-    r = -0.01  # Small step penalty
     if new_cell_covered:
-        r += 1.0
-    if game_over:
-        r -= 5.0  # Less severe penalty for failure
-    # Bonus for covering more cells
-    coverage_ratio = total_covered_cells / coverable_cells
-    r += coverage_ratio * 0.1
-    return r
+        return 1.0
+    else:
+        return -0.1
