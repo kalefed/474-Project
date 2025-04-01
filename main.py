@@ -3,6 +3,7 @@ import time
 import gymnasium as gym
 import coverage_gridworld  # must be imported, even though it's not directly referenced
 from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3 import DQN
 from sb3_contrib import QRDQN
 
 
@@ -101,26 +102,24 @@ vec_env = make_vec_env("safe", n_envs=4)
 policy_kwargs = dict(n_quantiles=100)
 
 # Create and train the QRDQN model
-model = QRDQN(
+model = DQN(
     "MlpPolicy",
     vec_env,
-    policy_kwargs=policy_kwargs,
     verbose=1,
+    tensorboard_log="./tensorboard/",
+    exploration_initial_eps=1,  # start with full exploration
+    exploration_final_eps=0.05,  # end with 5% exploration
+    exploration_fraction=0.2,  # decay over the first 20% of training
 )
-model.learn(total_timesteps=10_000, log_interval=4)
+model.learn(total_timesteps=10000, tb_log_name="dqn_run")
 model.save("qrdqn_safe")
 
 # Single environment for testing
 print("TESTING")
 
-env = gym.make(
-    "safe",
-    render_mode="human",
-    predefined_map_list=None,
-    activate_game_status=True,
-)
+env = gym.make("safe", render_mode="human")
 # Load the trained model (this will be used during gameplay)
-model = QRDQN.load("qrdqn_safe")
+model = DQN.load("qrdqn_safe")
 
 num_episodes = 5
 total_reward = 0
@@ -129,7 +128,7 @@ for i in range(num_episodes):
     obs, _ = env.reset()  # Reset the environment for each episode
     done = False
     while not done:
-        action, _states = model.predict(obs, deterministic=True)
+        action, _states = model.predict(obs)
         obs, reward, done, truncated, info = env.step(action)
 
         total_reward += reward

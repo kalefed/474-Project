@@ -12,7 +12,7 @@ def observation_space(env: gym.Env) -> gym.spaces.Space:
     """
     # The grid has (10, 10, 3) shape and can store values from 0 to 255 (uint8). To use the whole grid as the
     # observation space, we can consider a MultiDiscrete space with values in the range [0, 256).
-    shape = env.grid.shape  # should be (10, 10, 3)
+    shape = (5, 5, 3)
     nvec = np.full(shape, 256, dtype=np.int32)  # Each cell can have values 0–255
     return gym.spaces.MultiDiscrete(nvec.flatten())
 
@@ -23,8 +23,8 @@ def observation(grid: np.ndarray):
     """
     # If the observation returned is not the same shape as the observation_space, an error will occur!
     # Make sure to make changes to both functions accordingly.
-
-    return grid.flatten().astype(np.int32)
+    test = grid.flatten().astype(np.int32)[0:75]  # TODO - this feels wrong.....
+    return test
 
 
 def reward(info: dict) -> float:
@@ -60,11 +60,9 @@ def reward(info: dict) -> float:
     reward = 0
 
     # If the cell the agent is visiting has already been visited penalize it to encourage exploration
-    
+
     # if cells_remaining/coverable_cells > 0.50:
-       
-        
-        
+
     if new_cell_covered:
         reward += 1.0
     else:
@@ -75,8 +73,7 @@ def reward(info: dict) -> float:
             reward += 10.0
         else:
             reward -= 10.0
-            
-    # TODO - 
-    
+
+    # TODO -
 
     return reward
