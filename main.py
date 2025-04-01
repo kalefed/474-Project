@@ -4,7 +4,7 @@ import gymnasium as gym
 import coverage_gridworld 
 from stable_baselines3 import DQN
 
-from stable_baselines3.common.env_util import make_vec_env # must be imported, even though it's not directly referenced
+from stable_baselines3.common.env_util import make_vec_env 
 
 
 def human_player():
