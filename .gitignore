@@ -127,13 +127,15 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+tensorboard 
+
 # Environments
-.env
+.grid_venv
 .venv
-env/
+grid_venv/
 venv/
 ENV/
-env.bak/
+grid_venv.bak/
 venv.bak/
 
 # Spyder project settings

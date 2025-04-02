@@ -1,27 +1,32 @@
 import numpy as np
 from gymnasium.spaces import Box
+import pprint
 
 """
 Feel free to modify the functions below and experiment with different environment configurations.
 """
 
+
 def observation_space(env):
     """Defines a 5x5 RGB observation space"""
-    return Box(low=0, high=255, shape=(5,5,3), dtype=np.uint8)
+    return Box(low=0, high=255, shape=(5, 5, 3), dtype=np.uint8)
+
 
 def observation(grid):
     """Returns a 5x5 grid around the agent"""
     # 1. Always return something, even if broken
     if grid is None:
-        return np.zeros((5,5,3), dtype=np.uint8)
-    
+        return np.zeros((5, 5, 3), dtype=np.uint8)
+
     # 2. Simple 5x5 view (with edge padding)
     try:
-        y, x = np.argwhere(np.all(grid == [160,161,161], axis=-1))[0]
-        padded = np.pad(grid, ((2,2),(2,2),(0,0)), mode='constant')
-        return padded[y:y+5, x:x+5]
+        y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
+        padded = np.pad(
+            grid, ((2, 2), (2, 2), (0, 0)), mode="constant", constant_values=5
+        )
+        return padded[y : y + 5, x : x + 5]
     except:
-        return np.zeros((5,5,3), dtype=np.uint8)
+        return np.zeros((5, 5, 3), dtype=np.uint8)
 
 
 def reward(info: dict) -> float:
@@ -53,10 +58,21 @@ def reward(info: dict) -> float:
 
     # IMPORTANT: You may design a reward function that uses just some of these values. Experiment with different
     # rewards and find out what works best for the algorithm you chose given the observation space you are using
+    reward = 0
+
+    # If the cell the agent is visiting has already been visited penalize it to encourage exploration
+
+    # if cells_remaining/coverable_cells > 0.50:
+
+    if new_cell_covered:
+        reward += 1.0
+    else:
+        reward -= 0.75
 
     if game_over:
-        return -10.0
-    elif new_cell_covered:
-        return 1.0
-    else:
-        return -0.2
+        if cells_remaining == 0:
+            reward += 10.0
+        else:
+            reward -= 10.0
+
+    return reward

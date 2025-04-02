@@ -6,6 +6,7 @@ import gymnasium as gym
 from gymnasium.error import DependencyNotInstalled
 from typing import Optional
 from coverage_gridworld.custom import observation_space, observation, reward
+import pprint
 
 """
 THIS FILE SHOULD NOT BE MODIFIED! USE IT ONLY FOR UNDERSTANDING HOW THE ENVIRONMENT WORKS.
@@ -20,22 +21,22 @@ UP = 3
 STAY = 4
 
 # rendering colors
-BLACK = (0, 0, 0)            # unexplored cell
-WHITE = (255, 255, 255)      # explored cell
-BROWN = (101, 67, 33)        # wall
-GREY = (160, 161, 161)       # agent
-GREEN = (31, 198, 0)         # enemy
-RED = (255, 0, 0)            # unexplored cell being observed by an enemy
+BLACK = (0, 0, 0)  # unexplored cell
+WHITE = (255, 255, 255)  # explored cell
+BROWN = (101, 67, 33)  # wall
+GREY = (160, 161, 161)  # agent
+GREEN = (31, 198, 0)  # enemy
+RED = (255, 0, 0)  # unexplored cell being observed by an enemy
 LIGHT_RED = (255, 127, 127)  # explored cell being observed by an enemy
 
 # color IDs
 COLOR_IDS = {
-    0: BLACK,      # unexplored cell
-    1: WHITE,      # explored cell
-    2: BROWN,      # wall
-    3: GREY,       # agent
-    4: GREEN,      # enemy
-    5: RED,        # unexplored cell being observed by an enemy
+    0: BLACK,  # unexplored cell
+    1: WHITE,  # explored cell
+    2: BROWN,  # wall
+    3: GREY,  # agent
+    4: GREEN,  # enemy
+    5: RED,  # unexplored cell being observed by an enemy
     6: LIGHT_RED,  # explored cell being observed by an enemy
 }
 
@@ -44,6 +45,7 @@ class Enemy:
     """
     Class used to manage enemy's position, orientation and the cells being observed by it (FOV Cells)
     """
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -51,9 +53,11 @@ class Enemy:
         self.__fov_cells = []
 
     def __repr__(self):
-        return (f"(x, y): ({self.x}, {self.y}). "
-                f"Orientation: {self.__orientation_to_text()} ({self.orientation}). "
-                f"FOV (x, y): {self.__fov_cells}")
+        return (
+            f"(x, y): ({self.x}, {self.y}). "
+            f"Orientation: {self.__orientation_to_text()} ({self.orientation}). "
+            f"FOV (x, y): {self.__fov_cells}"
+        )
 
     def __orientation_to_text(self):
         orientations = ["LEFT", "DOWN", "RIGHT", "UP"]
@@ -137,22 +141,18 @@ class CoverageGridworld(gym.Env):
 
     """
 
-    metadata = {
-        "render_modes": ["human"],
-        "render_fps": 10,
-        "grid_size": 10
-    }
+    metadata = {"render_modes": ["human"], "render_fps": 10, "grid_size": 10}
 
     def __init__(
-            self,
-            render_mode: Optional[str] = None,
-            num_enemies: Optional[int] = 5,
-            enemy_fov_distance: Optional[int] = 4,
-            num_walls: Optional[int] = 12,
-            predefined_map: Optional[np.ndarray] = None,
-            predefined_map_list: Optional[list] = None,
-            activate_game_status: Optional[bool] = False,
-            **kwargs
+        self,
+        render_mode: Optional[str] = None,
+        num_enemies: Optional[int] = 5,
+        enemy_fov_distance: Optional[int] = 4,
+        num_walls: Optional[int] = 12,
+        predefined_map: Optional[np.ndarray] = None,
+        predefined_map_list: Optional[list] = None,
+        activate_game_status: Optional[bool] = False,
+        **kwargs,
     ):
         # Grid attributes
         self.grid_size = self.metadata["grid_size"]
@@ -170,7 +170,7 @@ class CoverageGridworld(gym.Env):
         self.clock = None
         self.window_size = (
             min(64 * self.grid_size, 512),
-            min(64 * self.grid_size, 512)
+            min(64 * self.grid_size, 512),
         )
         self.tile_size = (
             self.window_size[0] // self.grid_size,
@@ -178,23 +178,39 @@ class CoverageGridworld(gym.Env):
         )
 
         # Map layout attributes
-        self.num_enemies = num_enemies   # number of enemies used
-        self.enemy_fov_distance = enemy_fov_distance   # number of cells that the enemy can observe
-        self.num_walls = num_walls   # number of walls in the map
+        self.num_enemies = num_enemies  # number of enemies used
+        self.enemy_fov_distance = (
+            enemy_fov_distance  # number of cells that the enemy can observe
+        )
+        self.num_walls = num_walls  # number of walls in the map
 
         # State attributes
-        self.agent_pos = 0   # agent position, considering the flattened grid (e.g. cell 2,3 is position 23)
-        self.total_covered_cells = 1   # how many cells have been covered by the agent so far
-        self.coverable_cells = 0   # how many cells can be covered in the current map layout
-        self.steps_remaining = 500   # steps remaining in the episode
-        self.enemy_list = []   # list of enemies. Populated by __create_enemy_from_map() or __spawn_enemy_fov()
-        self.game_over = False   # if the episode has ended or not
+        self.agent_pos = 0  # agent position, considering the flattened grid (e.g. cell 2,3 is position 23)
+        self.total_covered_cells = (
+            1  # how many cells have been covered by the agent so far
+        )
+        self.coverable_cells = (
+            0  # how many cells can be covered in the current map layout
+        )
+        self.steps_remaining = 500  # steps remaining in the episode
+        self.enemy_list = (
+            []
+        )  # list of enemies. Populated by __create_enemy_from_map() or __spawn_enemy_fov()
+        self.game_over = False  # if the episode has ended or not
 
         # Environment variables
-        self.predefined_map = predefined_map   # map layout definition as a list of color ids, optional
-        self.activate_game_status = activate_game_status   # if game status messages should be shown or not
-        self.predefined_map_list = predefined_map_list   # list of predefined maps to be used, optional
-        self.current_predefined_map = 0   # index of predefined map to be used from the list
+        self.predefined_map = (
+            predefined_map  # map layout definition as a list of color ids, optional
+        )
+        self.activate_game_status = (
+            activate_game_status  # if game status messages should be shown or not
+        )
+        self.predefined_map_list = (
+            predefined_map_list  # list of predefined maps to be used, optional
+        )
+        self.current_predefined_map = (
+            0  # index of predefined map to be used from the list
+        )
 
         # Validates all maps within map list to avoid program exiting after training has already begun
         self.__validate_map_list_shapes()
@@ -225,8 +241,10 @@ class CoverageGridworld(gym.Env):
         if self.predefined_map_list is not None:
             for i, map in enumerate(self.predefined_map_list):
                 if np.shape(map) != (self.grid_size, self.grid_size):
-                    print(f"Invalid map dimensions for map with index {i} in list! "
-                          f"Use a valid map or try random map generation.")
+                    print(
+                        f"Invalid map dimensions for map with index {i} in list! "
+                        f"Use a valid map or try random map generation."
+                    )
                     exit(1)
 
             self.predefined_map = self.predefined_map_list[self.current_predefined_map]
@@ -251,6 +269,8 @@ class CoverageGridworld(gym.Env):
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
 
+        pprint.pprint(self.get_state())
+
         return self.get_state(), {}
 
     def __populate_grid(self):
@@ -265,26 +285,36 @@ class CoverageGridworld(gym.Env):
                     color_id = int(self.predefined_map[i][j])
                     self.grid[i, j] = np.asarray(COLOR_IDS[color_id])
             if not self.__is_grid_coverable():
-                print("The provided map cannot be fully covered! Use a valid map or try random map generation.")
+                print(
+                    "The provided map cannot be fully covered! Use a valid map or try random map generation."
+                )
                 exit(1)
             for enemy in self.enemy_list:
                 self.__spawn_fov(enemy)
 
             # if list of maps is being used, increments counter and selects next map to be used
             if self.predefined_map_list is not None:
-                self.current_predefined_map = (self.current_predefined_map + 1) % len(self.predefined_map_list)
-                self.predefined_map = self.predefined_map_list[self.current_predefined_map]
+                self.current_predefined_map = (self.current_predefined_map + 1) % len(
+                    self.predefined_map_list
+                )
+                self.predefined_map = self.predefined_map_list[
+                    self.current_predefined_map
+                ]
         else:
             # random map generation may create invalid maps, so a limit is imposed to avoid an infinite loop
             verification_limit = 100
             for i in range(verification_limit):
-                self.grid = np.zeros((self.grid_size, self.grid_size, 3), dtype=np.uint8)
+                self.grid = np.zeros(
+                    (self.grid_size, self.grid_size, 3), dtype=np.uint8
+                )
                 self.enemy_list = []
                 self.__randomly_populate_grid()
                 if self.__is_grid_coverable():
                     break
             if i == verification_limit - 1:
-                print("No valid grid could be generated. Please modify environment parameters.")
+                print(
+                    "No valid grid could be generated. Please modify environment parameters."
+                )
                 exit(1)
 
     def __randomly_populate_grid(self):
@@ -293,9 +323,13 @@ class CoverageGridworld(gym.Env):
         """
         occupied_cells = [0]
         self.grid[0, 0] = np.asarray(GREY)
-        wall_cells = self.__spawn_items(num_items=self.num_walls, occupied_cells=occupied_cells, color=BROWN)
+        wall_cells = self.__spawn_items(
+            num_items=self.num_walls, occupied_cells=occupied_cells, color=BROWN
+        )
         occupied_cells.extend(wall_cells)
-        enemy_cells = self.__spawn_items(num_items=self.num_enemies, occupied_cells=occupied_cells, color=GREEN)
+        enemy_cells = self.__spawn_items(
+            num_items=self.num_enemies, occupied_cells=occupied_cells, color=GREEN
+        )
         self.__spawn_enemy_fov(enemy_cells)
 
     def __verify_map(self):
@@ -306,7 +340,9 @@ class CoverageGridworld(gym.Env):
         III) if the cells in the predefined map are either walls or enemies, ignoring any cells that are not
         """
         if np.shape(self.predefined_map) != (self.grid_size, self.grid_size):
-            print("Invalid map dimensions! Use a valid map or try random map generation.")
+            print(
+                "Invalid map dimensions! Use a valid map or try random map generation."
+            )
             exit(1)
 
         for i in range(self.grid_size):
@@ -341,7 +377,10 @@ class CoverageGridworld(gym.Env):
         new_occupied_cells = []
         for i in range(num_items):
             random_cell_index = random.randint(1, self.num_cells - 1)
-            while random_cell_index in occupied_cells or random_cell_index in new_occupied_cells:
+            while (
+                random_cell_index in occupied_cells
+                or random_cell_index in new_occupied_cells
+            ):
                 random_cell_index = random.randint(1, self.num_cells - 1)
 
             new_occupied_cells.append(random_cell_index)
@@ -383,7 +422,9 @@ class CoverageGridworld(gym.Env):
                 if fov_row * self.grid_size + fov_col == self.agent_pos:
                     # if FOV cell is the agent's cell, then that creates a game over condition
                     self.game_over = True
-                if self._is_color_in_cell(WHITE, fov_row, fov_col) or self._is_color_in_cell(GREY, fov_row, fov_col):
+                if self._is_color_in_cell(
+                    WHITE, fov_row, fov_col
+                ) or self._is_color_in_cell(GREY, fov_row, fov_col):
                     # if the cell was either WHITE or GREY, then it becomes LIGHT_RED
                     self.grid[fov_row, fov_col] = np.asarray(LIGHT_RED)
                 elif self._is_color_in_cell(LIGHT_RED, fov_row, fov_col):
@@ -483,14 +524,14 @@ class CoverageGridworld(gym.Env):
             "coverable_cells": self.coverable_cells,
             "steps_remaining": self.steps_remaining,
             "new_cell_covered": new_cell_covered,
-            "game_over": self.game_over
+            "game_over": self.game_over,
         }
 
         # renders the environment if needed
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
 
-        print(action)
+        # print(action)
 
         return self.get_state(), reward(info), terminated, False, info
 
@@ -506,7 +547,9 @@ class CoverageGridworld(gym.Env):
         new_cell_covered = False
 
         if 0 <= x < self.grid_size and 0 <= y < self.grid_size:
-            if self._is_color_in_cell(BROWN, y, x) or self._is_color_in_cell(GREEN, y, x):
+            if self._is_color_in_cell(BROWN, y, x) or self._is_color_in_cell(
+                GREEN, y, x
+            ):
                 # if agent moves towards a wall or enemy, nothing happens
                 pass
             else:
@@ -514,7 +557,9 @@ class CoverageGridworld(gym.Env):
                 # previous agent's cell becomes WHITE instead of GREY
                 self.grid[agent_y, agent_x] = np.asarray(WHITE)
                 # enemy rotation happens after agent movement, so RED is also accounted for
-                if self._is_color_in_cell(BLACK, y, x) or self._is_color_in_cell(RED, y, x):
+                if self._is_color_in_cell(BLACK, y, x) or self._is_color_in_cell(
+                    RED, y, x
+                ):
                     self.total_covered_cells += 1
                     new_cell_covered = True
                 # new agent's cell becomes GREY
@@ -548,14 +593,18 @@ class CoverageGridworld(gym.Env):
             elif self._is_color_in_cell(LIGHT_RED, cell[0], cell[1]):
                 # a LIGHT_RED cell has already been visited, so it becomes WHITE when enemy stops observing it
                 self.grid[cell] = np.asarray(WHITE)
-            elif (self._is_color_in_cell(BLACK, cell[0], cell[1]) or
-                  self._is_color_in_cell(WHITE, cell[0], cell[1]) or
-                  self._is_color_in_cell(GREY, cell[0], cell[1])):
+            elif (
+                self._is_color_in_cell(BLACK, cell[0], cell[1])
+                or self._is_color_in_cell(WHITE, cell[0], cell[1])
+                or self._is_color_in_cell(GREY, cell[0], cell[1])
+            ):
                 # cell already processed
                 pass
             else:
                 # error message to handle possible bugs
-                print(f"---> Error! FOV cell {cell} has an invalid value: {self.grid[cell]} <---")
+                print(
+                    f"---> Error! FOV cell {cell} has an invalid value: {self.grid[cell]} <---"
+                )
 
         # clears the list of old FOV cells
         enemy.clear_fov_cells()
@@ -578,7 +627,7 @@ class CoverageGridworld(gym.Env):
             self.window_surface = pygame.display.set_mode(self.window_size)
 
         assert (
-                self.window_surface is not None
+            self.window_surface is not None
         ), "Something went wrong with pygame. This should never happen."
 
         if self.clock is None:
@@ -594,13 +643,17 @@ class CoverageGridworld(gym.Env):
                 rect = pygame.Rect(pos, tuple(cs * 0.99 for cs in t_size))
 
                 # draw background
-                if self._is_color_in_cell(WHITE, y, x):  # draws black border if cell is white
+                if self._is_color_in_cell(
+                    WHITE, y, x
+                ):  # draws black border if cell is white
                     pygame.draw.rect(self.window_surface, BLACK, border)
                 else:
                     pygame.draw.rect(self.window_surface, WHITE, border)
 
                 if y * self.grid_size + x == self.agent_pos:  # draw agent's cell
-                    if self._is_color_in_cell(GREY, y, x):  # if no enemy is observing the agent's cell
+                    if self._is_color_in_cell(
+                        GREY, y, x
+                    ):  # if no enemy is observing the agent's cell
                         pygame.draw.rect(self.window_surface, WHITE, rect)
                     else:  # if an enemy is observing the agent's cell
                         pygame.draw.rect(self.window_surface, self.grid[y, x], rect)
