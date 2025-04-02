@@ -22,11 +22,19 @@ def observation(grid):
     try:
         y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
         padded = np.pad(
-            grid, ((2, 2), (2, 2), (0, 0)), mode="constant", constant_values=5
+            grid, ((2, 2), (2, 2), (0, 0)), mode="constant", constant_values=0
         )
         return padded[y : y + 5, x : x + 5]
     except:
         return np.zeros((5, 5, 3), dtype=np.uint8)
+
+
+directions = {
+    0: 1,
+    1: 2,
+    2: 3,
+    3: 4,
+}
 
 
 def reward(info: dict) -> float:
@@ -60,8 +68,39 @@ def reward(info: dict) -> float:
     # rewards and find out what works best for the algorithm you chose given the observation space you are using
     reward = 0
 
-    # If the cell the agent is visiting has already been visited penalize it to encourage exploration
+    # NOTE - Kales reward stuff (WIP)
+    # if the agent is in the same row or column of future FOV
+    future_fov = []
 
+    for enemy in enemies:
+        x = enemy.x
+        y = enemy.y
+        orientation = enemy.orientation
+
+        next_direction = directions[orientation]
+        next_fov = []
+
+        for i in range(1, 5):  # the evil guy can see 4 blocks
+            if next_direction == 0:  # LEFT
+                fov_row, fov_col = y, x - i
+            elif next_direction == 1:  # DOWN
+                fov_row, fov_col = y + i, x
+            elif next_direction == 2:  # RIGHT
+                fov_row, fov_col = y, x + i
+            else:  # UP
+                fov_row, fov_col = y - i, x
+
+            next_fov.append((fov_row, fov_col))
+
+    if len(str(agent_pos)) == 1:
+        unflattened_agent_pos = (0, agent_pos)
+    else:
+        unflattened_agent_pos = (int(str(agent_pos)[0]), int(str(agent_pos)[1]))
+
+    if unflattened_agent_pos in next_fov:
+        reward -= 1.0
+
+    # NOTE - previous rewards
     # if cells_remaining/coverable_cells > 0.50:
 
     if new_cell_covered:
