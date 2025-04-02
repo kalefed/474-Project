@@ -4,26 +4,53 @@ import gymnasium as gym
 """
 Feel free to modify the functions below and experiment with different environment configurations.
 """
-
+unexplored = []
 
 def observation_space(env: gym.Env) -> gym.spaces.Space:
     """Defines a 5x5 RGB observation space"""
-    # OBS STRATEGY 2
-    return gym.spaces.Box(low=0, high=255, shape=(env.num_cells,2), dtype=np.uint8)
-    
+    #OBS STRATEGY 2
+    return gym.spaces.Box(low=0, high=1, shape=(7, 7,), dtype=np.uint8)
+
     #OBS STRATEGY 1
     #return gym.spaces.Box(low=0, high=255, shape=(5, 5, 3), dtype=np.uint8)
 
 def observation(grid: np.ndarray):
     """Returns a 5x5 grid around the agent"""
+    
     # OBS STRATEGY 2
-    agent = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
-    agent = np.array([agent])
-    rcs = np.argwhere(np.all(grid == [0, 0, 0], axis=-1))
-    obs = np.append(agent, rcs, axis=0)
-    while len(obs) < 100:
-        obs = np.append(obs, [[255,255]], axis=0)
-    return np.array(obs)
+
+    #get position of agent
+    y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
+    padded = np.pad(
+        grid, ((3, 3), (3, 3), (0, 0)), mode="constant", constant_values=5
+    )
+    # have a 7x7 window of visibility surrounding the agent
+    window = padded[y : y + 7, x : x + 7]
+    translated = [[],[],[],[],[],[],[]] # the info will be translated to 7x7 rather than 7x7x3
+    flattened = list(np.ravel(window)) #get all vals in order
+    while len(flattened) > 0:
+        for i in range(7):
+            while len(translated[i]) < 7:
+                r = flattened.pop(0)
+                g = flattened.pop(0)
+                b = flattened.pop(0)
+                
+                #if black or red
+                if ((r == 0 and g == 0 and b == 0) or 
+                    (r == 255 and g == 0 and b == 0)):
+                    translated[i].append(0) # need to cover
+
+                #if white, grey, or light-red
+                elif ((r == 255 and g == 255 and b == 255) or 
+                      (r == 160 and g == 161 and b == 161) or
+                      (r == 255 and g == 127 and b == 127)):
+                    translated[i].append(1) # already covered but walkable
+                    
+                #if brown, or green
+                else:
+                    translated[i].append(2)  # can't go there
+
+    return np.array(translated)
 
     # OBS STRATEGY 1
     # y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
