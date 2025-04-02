@@ -96,9 +96,9 @@ maps = [
 def testing():
     # Single environment for testing
     env = gym.make(
-        "maze", render_mode="human", predefined_map_list=None, activate_game_status=True
+        "chokepoint", render_mode="human", predefined_map_list=None, activate_game_status=True
     )
-    model = PPO.load("gridworld-maze")
+    model = PPO.load("gridworld-chokepoint-500")
 
     num_episodes = 5
     total_reward = 0
@@ -131,16 +131,16 @@ def testing():
 def training():
     print("Training...")
     # Parallel environments for training
-    vec_env = make_vec_env("maze", n_envs=4)
+    vec_env = make_vec_env("chokepoint", n_envs=4)
     model = PPO("MlpPolicy", vec_env, verbose=1, tensorboard_log="./tensorboard/")
-    model.learn(total_timesteps=500000, tb_log_name="ppo_run_maze")
-    model.save("gridworld-maze")
+    model.learn(total_timesteps=500000, tb_log_name="milestone-chokepoint-500k")
+    model.save("gridworld-chokepoint-500")
     print("Training finished. Model saved as 'gridworld'.")
     return model
 
 
 def test_random_actions():
-    env = gym.make("maze", render_mode="human")
+    env = gym.make("chokepoint", render_mode="human")
     env.reset()
     done = False
     while not done:
