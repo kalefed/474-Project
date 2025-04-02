@@ -96,11 +96,11 @@ maps = [
 def testing():
     # Single environment for testing
     env = gym.make(
-        "safe", render_mode="human", predefined_map_list=None, activate_game_status=True
+        "maze", render_mode="human", predefined_map_list=None, activate_game_status=True
     )
-    model = PPO.load("gridworld")
+    model = PPO.load("gridworld-maze")
 
-    num_episodes = 2
+    num_episodes = 5
     total_reward = 0
 
     for i in range(num_episodes):
@@ -131,16 +131,16 @@ def testing():
 def training():
     print("Training...")
     # Parallel environments for training
-    vec_env = make_vec_env("safe", n_envs=4)
+    vec_env = make_vec_env("maze", n_envs=4)
     model = PPO("MlpPolicy", vec_env, verbose=1, tensorboard_log="./tensorboard/")
-    model.learn(total_timesteps=150000, tb_log_name="dqn_run")
-    model.save("gridworld")
+    model.learn(total_timesteps=500000, tb_log_name="ppo_run_maze")
+    model.save("gridworld-maze")
     print("Training finished. Model saved as 'gridworld'.")
     return model
 
 
 def test_random_actions():
-    env = gym.make("safe", render_mode="human")
+    env = gym.make("maze", render_mode="human")
     env.reset()
     done = False
     while not done:

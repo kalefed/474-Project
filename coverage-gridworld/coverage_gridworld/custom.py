@@ -58,21 +58,32 @@ def reward(info: dict) -> float:
 
     # IMPORTANT: You may design a reward function that uses just some of these values. Experiment with different
     # rewards and find out what works best for the algorithm you chose given the observation space you are using
-    reward = 0
 
-    # If the cell the agent is visiting has already been visited penalize it to encourage exploration
 
-    # if cells_remaining/coverable_cells > 0.50:
+   
+    reward = 0.0
 
+    # Base reward for exploring
     if new_cell_covered:
         reward += 1.0
-    else:
-        reward -= 0.75
 
-    if game_over:
-        if cells_remaining == 0:
-            reward += 10.0
-        else:
-            reward -= 10.0
+        # Set milestone rewards for covering 25%, 50%, 75% and 100% of the map
+        if total_covered_cells in [
+            int(0.25 * coverable_cells),
+            int(0.5 * coverable_cells),
+            int(0.75 * coverable_cells),
+            int(1.0 * coverable_cells),
+        ]:
+            reward += 1.0  # milestone bonus
+
+    else:
+        reward -= 0.1  # discourage idling or revisiting
+
+    # Step penalty
+    reward -= 0.01
+
+    # Game over penalty
+    if game_over and cells_remaining > 0:
+        reward -= 5.0
 
     return reward
