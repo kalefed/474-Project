@@ -22,7 +22,7 @@ def observation(grid):
     try:
         y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
         padded = np.pad(
-            grid, ((2, 2), (2, 2), (0, 0)), mode="constant", constant_values=0
+            grid, ((2, 2), (2, 2), (0, 0)), mode="constant", constant_values=5
         )
         return padded[y : y + 5, x : x + 5]
     except:
