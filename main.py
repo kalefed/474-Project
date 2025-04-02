@@ -133,7 +133,8 @@ def training():
     # Parallel environments for training
     vec_env = make_vec_env("safe", n_envs=4)
     model = PPO("MlpPolicy", vec_env, verbose=1, tensorboard_log="./tensorboard/")
-    model.learn(total_timesteps=150000, tb_log_name="dqn_run")
+    #model = PPO.load("gridworld", env=vec_env)
+    model.learn(total_timesteps=500000, tb_log_name="ppo_run")
     model.save("gridworld")
     print("Training finished. Model saved as 'gridworld'.")
     return model
@@ -146,7 +147,7 @@ def test_random_actions():
     while not done:
         action = env.action_space.sample()  # Random action
         _, _, done, _, _ = env.step(action)
-        time.sleep(0.2)
+        time.sleep(0.05)
     env.close()
 
 
