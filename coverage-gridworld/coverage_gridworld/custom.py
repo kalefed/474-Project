@@ -15,50 +15,64 @@ def observation_space(env: gym.Env) -> gym.spaces.Space:
     #return gym.spaces.Box(low=0, high=255, shape=(5, 5, 3), dtype=np.uint8)
 
 def observation(grid: np.ndarray):
-    """Returns a 5x5 grid around the agent"""
+    """Returns a 5x5 grid around the agent""" #TODO fix docstring
     
     # OBS STRATEGY 2
+    #Always return something, even if broken
+    if grid is None:
+        return np.zeros((7,7,), dtype=np.uint8)
 
-    #get position of agent
-    y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
-    padded = np.pad(
-        grid, ((3, 3), (3, 3), (0, 0)), mode="constant", constant_values=5
-    )
-    # have a 7x7 window of visibility surrounding the agent
-    window = padded[y : y + 7, x : x + 7]
-    translated = [[],[],[],[],[],[],[]] # the info will be translated to 7x7 rather than 7x7x3
-    flattened = list(np.ravel(window)) #get all vals in order
-    while len(flattened) > 0:
-        for i in range(7):
-            while len(translated[i]) < 7:
-                r = flattened.pop(0)
-                g = flattened.pop(0)
-                b = flattened.pop(0)
-                
-                #if black or red
-                if ((r == 0 and g == 0 and b == 0) or 
-                    (r == 255 and g == 0 and b == 0)):
-                    translated[i].append(0) # need to cover
-
-                #if white, grey, or light-red
-                elif ((r == 255 and g == 255 and b == 255) or 
-                      (r == 160 and g == 161 and b == 161) or
-                      (r == 255 and g == 127 and b == 127)):
-                    translated[i].append(1) # already covered but walkable
+    try:
+        #get position of agent
+        y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
+        padded = np.pad(
+            grid, ((3, 3), (3, 3), (0, 0)), mode="constant", constant_values=5
+        )
+        # have a 7x7 window of visibility surrounding the agent
+        window = padded[y : y + 7, x : x + 7]
+        translated = [[],[],[],[],[],[],[]] # the info will be translated to 7x7 rather than 7x7x3
+        flattened = list(np.ravel(window)) #get all vals in order
+        while len(flattened) > 0:
+            for i in range(7):
+                while len(translated[i]) < 7:
+                    r = flattened.pop(0)
+                    g = flattened.pop(0)
+                    b = flattened.pop(0)
                     
-                #if brown, or green
-                else:
-                    translated[i].append(2)  # can't go there
+                    #if black or red
+                    if ((r == 0 and g == 0 and b == 0) or 
+                        (r == 255 and g == 0 and b == 0)):
+                        translated[i].append(0) # need to cover
 
-    return np.array(translated)
+                    #if white, grey, or light-red
+                    elif ((r == 255 and g == 255 and b == 255) or 
+                        (r == 160 and g == 161 and b == 161) or
+                        (r == 255 and g == 127 and b == 127)):
+                        translated[i].append(1) # already covered but walkable
 
+                    #if brown, or green
+                    else:
+                        translated[i].append(2)  # can't go there
+
+        return np.array(translated)
+    except:
+        return np.zeros((7,7,), dtype=np.uint8)
+
+    
     # OBS STRATEGY 1
-    # y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
-    # padded = np.pad(
-    #     grid, ((2, 2), (2, 2), (0, 0)), mode="constant", constant_values=0
-    # )
-    # return padded[y : y + 5, x : x + 5]
+    # # 1. Always return something, even if broken
+    # if grid is None:
+    #     return np.zeros((5, 5, 3), dtype=np.uint8)
 
+    # # 2. Simple 5x5 view (with edge padding)
+    # try:
+    #     y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
+    #     padded = np.pad(
+    #         grid, ((2, 2), (2, 2), (0, 0)), mode="constant", constant_values=5
+    #     )
+    #     return padded[y : y + 5, x : x + 5]
+    # except:
+    #     return np.zeros((5, 5, 3), dtype=np.uint8)
 
 directions = {
     0: 1,

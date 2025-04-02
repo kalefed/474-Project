@@ -96,7 +96,7 @@ maps = [
 def testing():
     # Single environment for testing
     env = gym.make(
-        "safe", render_mode="human", predefined_map_list=None, activate_game_status=True
+        "sneaky_enemies", render_mode="human", predefined_map_list=None, activate_game_status=True
     )
     model = PPO.load("gridworld")
 
@@ -131,7 +131,7 @@ def testing():
 def training():
     print("Training...")
     # Parallel environments for training
-    vec_env = make_vec_env("safe", n_envs=4)
+    vec_env = make_vec_env("sneaky_enemies", n_envs=4)
     model = PPO("MlpPolicy", vec_env, verbose=1, tensorboard_log="./tensorboard/")
     #model = PPO.load("gridworld", env=vec_env)
     model.learn(total_timesteps=500000, tb_log_name="ppo_run")
@@ -141,7 +141,7 @@ def training():
 
 
 def test_random_actions():
-    env = gym.make("safe", render_mode="human")
+    env = gym.make("sneaky_enemies", render_mode="human")
     env.reset()
     done = False
     while not done:
