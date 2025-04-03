@@ -84,10 +84,10 @@ def reward(info: dict) -> float:
         reward -= 0.1  # discourage idling or revisiting
 
 
+
+    if cells_remaining == 0:
+        reward += 10.0 + steps_remaining * 0.1  # bonus for finishing fast
     if game_over:
-        if cells_remaining == 0:
-            reward += 10.0 + steps_remaining * 0.1  # bonus for finishing fast
-        else:
-            reward -= 10.0  # punished for failing before completion
+        reward -= 10.0  # punished for failing before completion
 
     return reward
