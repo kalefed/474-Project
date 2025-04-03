@@ -52,7 +52,7 @@ def observation(grid: np.ndarray):
                     # light-red
                     elif (r == 255 and g == 127 and b == 127):
                         translated[i].append(3) # already covered but walkable dangerously
-                    #if brown, or green
+                    #if brown, green, or padding
                     else:
                         translated[i].append(4)  # can't go there
 
