@@ -6,7 +6,6 @@ import pprint
 Feel free to modify the functions below and experiment with different environment configurations.
 """
 
-
 def observation_space(env):
     """Defines a 5x5 RGB observation space"""
     return Box(low=0, high=255, shape=(5, 5, 3), dtype=np.uint8)
@@ -27,14 +26,6 @@ def observation(grid):
         return padded[y : y + 5, x : x + 5]
     except:
         return np.zeros((5, 5, 3), dtype=np.uint8)
-
-
-directions = {
-    0: 1,
-    1: 2,
-    2: 3,
-    3: 4,
-}
 
 
 def reward(info: dict) -> float:
@@ -64,54 +55,42 @@ def reward(info: dict) -> float:
     new_cell_covered = info["new_cell_covered"]
     game_over = info["game_over"]
 
-    # IMPORTANT: You may design a reward function that uses just some of these values. Experiment with different
-    # rewards and find out what works best for the algorithm you chose given the observation space you are using
-    reward = 0
+    reward = 0.0
+    grid_size = 10
+    agent_x = agent_pos % grid_size
+    agent_y = agent_pos // grid_size
+    agent_coord = (agent_y, agent_x)
 
-    # NOTE - Kales reward stuff (WIP)
-    # if the agent is in the same row or column of future FOV
-    future_fov = []
 
+    in_enemy_fov = False
     for enemy in enemies:
-        x = enemy.x
-        y = enemy.y
-        orientation = enemy.orientation
+        # Check if the agent is in the enemy's field of view
+        if agent_coord in enemy.get_fov_cells():
+            in_enemy_fov = True
+            break
 
-        next_direction = directions[orientation]
-        next_fov = []
-
-        for i in range(1, 5):  # the evil guy can see 4 blocks
-            if next_direction == 0:  # LEFT
-                fov_row, fov_col = y, x - i
-            elif next_direction == 1:  # DOWN
-                fov_row, fov_col = y + i, x
-            elif next_direction == 2:  # RIGHT
-                fov_row, fov_col = y, x + i
-            else:  # UP
-                fov_row, fov_col = y - i, x
-
-            next_fov.append((fov_row, fov_col))
-
-    if len(str(agent_pos)) == 1:
-        unflattened_agent_pos = (0, agent_pos)
-    else:
-        unflattened_agent_pos = (int(str(agent_pos)[0]), int(str(agent_pos)[1]))
-
-    if unflattened_agent_pos in next_fov:
-        reward -= 1.0
-
-    # NOTE - previous rewards
-    # if cells_remaining/coverable_cells > 0.50:
-
+    # Bravery-based exploration
     if new_cell_covered:
-        reward += 1.0
+        if in_enemy_fov:
+            reward += 1.5  # brave tile
+        else:
+            reward += 1.0  # normal tile
     else:
-        reward -= 0.75
+        reward -= 0.3 # been to this space already
+
+    # Proximity bravery THIS MIGHT CAUSE ISSUE WITH KEEPING THE AGENT NEARBY ENEMY AND NOT UNCOVERING THE MAP
+    if new_cell_covered:
+        for enemy in enemies:
+            dist = abs(agent_x - enemy.x) + abs(agent_y - enemy.y)
+            if 1 <= dist <= 4:
+                reward += 0.15  # flirting with danger
+
+    if cells_remaining == 0:
+        reward += 15.0 + 0.1 * steps_remaining # bonus finishing early 
 
     if game_over:
-        if cells_remaining == 0:
-            reward += 10.0
-        else:
-            reward -= 10.0
+        reward -= 10.0
 
     return reward
+
+    

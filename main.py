@@ -98,9 +98,9 @@ def testing():
     env = gym.make(
         "maze", render_mode="human", predefined_map_list=None, activate_game_status=True
     )
-    model = PPO.load("gridworld")
+    model = PPO.load("gridworld-r3-maze-100k")
 
-    num_episodes = 2
+    num_episodes = 5
     total_reward = 0
 
     for i in range(num_episodes):
@@ -133,8 +133,8 @@ def training():
     # Parallel environments for training
     vec_env = make_vec_env("maze", n_envs=4)
     model = PPO("MlpPolicy", vec_env, verbose=1, tensorboard_log="./tensorboard/")
-    model.learn(total_timesteps=150000, tb_log_name="dqn_run")
-    model.save("gridworld")
+    model.learn(total_timesteps=100000, tb_log_name="gridworld-r3final-maze-100k")
+    model.save("gridworld-r3-maze-100k")
     print("Training finished. Model saved as 'gridworld'.")
     return model
 
@@ -150,7 +150,7 @@ def test_random_actions():
     env.close()
 
 
-training()
+#training()
 testing()
 
 # test_random_actions()
