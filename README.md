@@ -1,4 +1,4 @@
-# Coverage Gridworld hey squad
+# Coverage Gridworld
 
 ![visualization](media/sneaky_enemies.gif "Sneaky Enemies sample layout")
 
