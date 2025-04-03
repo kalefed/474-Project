@@ -6,6 +6,7 @@ Feel free to modify the functions below and experiment with different environmen
 """
 unexplored = []
 
+
 def observation_space(env: gym.Env) -> gym.spaces.Space:
     """
     #---------------------------------OBSERVATION 1---------------------------------
@@ -13,12 +14,21 @@ def observation_space(env: gym.Env) -> gym.spaces.Space:
 
     return gym.spaces.Box(low=0, high=255, shape=(5, 5, 3), dtype=np.uint8)
     """
-    #---------------------------------OBSERVATION 2---------------------------------
-    #Defines a 7x7 cell-type observation space
-    return gym.spaces.Box(low=0, high=1, shape=(7, 7,), dtype=np.uint8)
+    # ---------------------------------OBSERVATION 2---------------------------------
+    # Defines a 7x7 cell-type observation space
+    return gym.spaces.Box(
+        low=0,
+        high=1,
+        shape=(
+            7,
+            7,
+        ),
+        dtype=np.uint8,
+    )
+
 
 def observation(grid: np.ndarray):
-    """    
+    """
     #---------------------------------OBSERVATION 1---------------------------------
     #Returns a 5x5 grid around the agent
 
@@ -36,50 +46,73 @@ def observation(grid: np.ndarray):
     except:
         return np.zeros((5, 5, 3), dtype=np.uint8)
     """
-    
-    #---------------------------------OBSERVATION 2---------------------------------
 
-    #Always return something, even if broken
+    # ---------------------------------OBSERVATION 2---------------------------------
+
+    # Always return something, even if broken
     if grid is None:
-        return np.zeros((7,7,), dtype=np.uint8)
+        return np.zeros(
+            (
+                7,
+                7,
+            ),
+            dtype=np.uint8,
+        )
 
     try:
-        #get position of agent
+        # get position of agent
         y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
         padded = np.pad(
             grid, ((3, 3), (3, 3), (0, 0)), mode="constant", constant_values=5
         )
         # have a 7x7 window of visibility surrounding the agent
         window = padded[y : y + 7, x : x + 7]
-        translated = [[],[],[],[],[],[],[]] # the info will be translated to 7x7 rather than 7x7x3
-        flattened = list(np.ravel(window)) #get all vals in order
+        translated = [
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+        ]  # the info will be translated to 7x7 rather than 7x7x3
+        flattened = list(np.ravel(window))  # get all vals in order
         while len(flattened) > 0:
             for i in range(7):
                 while len(translated[i]) < 7:
                     r = flattened.pop(0)
                     g = flattened.pop(0)
                     b = flattened.pop(0)
-                    
-                    #if black
-                    if (r == 0 and g == 0 and b == 0):
-                        translated[i].append(0) # need to cover
-                    #if red
-                    elif (r == 255 and g == 0 and b == 0):
-                        translated[i].append(1) # need to cover but danger area
-                    #if white, grey
-                    elif ((r == 255 and g == 255 and b == 255) or 
-                          (r == 160 and g == 161 and b == 161)):
-                        translated[i].append(2) # already covered but walkable
+
+                    # if black
+                    if r == 0 and g == 0 and b == 0:
+                        translated[i].append(0)  # need to cover
+                    # if red
+                    elif r == 255 and g == 0 and b == 0:
+                        translated[i].append(1)  # need to cover but danger area
+                    # if white, grey
+                    elif (r == 255 and g == 255 and b == 255) or (
+                        r == 160 and g == 161 and b == 161
+                    ):
+                        translated[i].append(2)  # already covered but walkable
                     # light-red
-                    elif (r == 255 and g == 127 and b == 127):
-                        translated[i].append(3) # already covered but walkable dangerously
-                    #if brown, green, or padding
+                    elif r == 255 and g == 127 and b == 127:
+                        translated[i].append(
+                            3
+                        )  # already covered but walkable dangerously
+                    # if brown, green, or padding
                     else:
                         translated[i].append(4)  # can't go there
 
         return np.array(translated)
     except:
-        return np.zeros((7,7,), dtype=np.uint8)
+        return np.zeros(
+            (
+                7,
+                7,
+            ),
+            dtype=np.uint8,
+        )
 
 
 def reward(info: dict) -> float:
@@ -108,64 +141,6 @@ def reward(info: dict) -> float:
     steps_remaining = info["steps_remaining"]
     new_cell_covered = info["new_cell_covered"]
     game_over = info["game_over"]
-
-    # IMPORTANT: You may design a reward function that uses just some of these values. Experiment with different
-    # rewards and find out what works best for the algorithm you chose given the observation space you are using
-    # reward = 0
-
-    # # NOTE - Kales reward stuff (WIP)
-    # # if the agent is in the same row or column of future FOV
-    # future_fov = []
-    # directions = {
-    # 0: 1,
-    # 1: 2,
-    # 2: 3,
-    # 3: 4,
-    #}
-
-    # for enemy in enemies:
-    #     x = enemy.x
-    #     y = enemy.y
-    #     orientation = enemy.orientation
-
-    #     next_direction = directions[orientation]
-    #     next_fov = []
-
-    #     for i in range(1, 5):  # the evil guy can see 4 blocks
-    #         if next_direction == 0:  # LEFT
-    #             fov_row, fov_col = y, x - i
-    #         elif next_direction == 1:  # DOWN
-    #             fov_row, fov_col = y + i, x
-    #         elif next_direction == 2:  # RIGHT
-    #             fov_row, fov_col = y, x + i
-    #         else:  # UP
-    #             fov_row, fov_col = y - i, x
-
-    #         next_fov.append((fov_row, fov_col))
-
-    # if len(str(agent_pos)) == 1:
-    #     unflattened_agent_pos = (0, agent_pos)
-    # else:
-    #     unflattened_agent_pos = (int(str(agent_pos)[0]), int(str(agent_pos)[1]))
-    # if len(enemies) > 0:
-    #     if unflattened_agent_pos in next_fov:
-    #         reward -= 1.0
-
-    # # NOTE - previous rewards
-    # 
-
-    # if new_cell_covered:
-    #     reward += 1.0
-    # else:
-    #     reward -= 0.75
-
-    # if game_over:
-    #     if cells_remaining == 0:
-    #         reward += 10.0
-    #     else:
-    #         reward -= 10.0
-
-    # return reward
 
     """
     #---------------------------------REWARD 1---------------------------------
@@ -199,6 +174,60 @@ def reward(info: dict) -> float:
 
     return reward"""
 
+    # ---------------------------------REWARD 2---------------------------------
+    # Penalize the agent if it is in the future FOV of the enemies
+    if len(str(agent_pos)) == 1:
+        unflattened_agent_pos = (0, agent_pos)
+    else:
+        unflattened_agent_pos = (int(str(agent_pos)[0]), int(str(agent_pos)[1]))
+
+    # for each enemy, calculate all the fov's it can have (excluding its current fov)
+    future_fovs = []
+
+    for enemy in enemies:
+        for dir in range(0, 4):
+            x = enemy.x
+            y = enemy.y
+            orientation = enemy.orientation
+
+            for i in range(1, 5):
+                if orientation == i:  # condition to exclude current fov
+                    break
+                if dir == 0:  # LEFT
+                    fov_row, fov_col = y, x - i
+                elif dir == 1:  # DOWN
+                    fov_row, fov_col = y + i, x
+                elif dir == 2:  # RIGHT
+                    fov_row, fov_col = y, x + i
+                else:  # UP
+                    fov_row, fov_col = y - i, x
+
+                future_fovs.append((fov_col, fov_row))
+
+        # Reward for game_over with no cells remaining and penalize if agent is killed by ghost
+        if cells_remaining == 0:
+            return 50
+
+        if game_over:
+            return -50.0
+
+        if steps_remaining == 0:
+            return -50.0
+
+        # calculate the total accumulated reward
+        reward = 0
+
+        if new_cell_covered:
+            reward += 3.0
+
+            # further encourage the agent to discover cells near the enemies
+            if unflattened_agent_pos in future_fovs:
+                reward += 4.0
+
+        else:
+            reward -= 1.0
+
+        return reward
 
     """
     #---------------------------------REWARD 3---------------------------------
