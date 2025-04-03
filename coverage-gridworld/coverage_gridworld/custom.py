@@ -7,17 +7,38 @@ Feel free to modify the functions below and experiment with different environmen
 unexplored = []
 
 def observation_space(env: gym.Env) -> gym.spaces.Space:
-    """Defines a 5x5 RGB observation space"""
-    #OBS STRATEGY 2
+    """
+    #---------------------------------OBSERVATION 1---------------------------------
+    #Defines a 5x5x3 RGB observation space
+
+    return gym.spaces.Box(low=0, high=255, shape=(5, 5, 3), dtype=np.uint8)
+    """
+    #---------------------------------OBSERVATION 2---------------------------------
+    #Defines a 7x7 cell-type observation space
     return gym.spaces.Box(low=0, high=1, shape=(7, 7,), dtype=np.uint8)
 
-    #OBS STRATEGY 1
-    #return gym.spaces.Box(low=0, high=255, shape=(5, 5, 3), dtype=np.uint8)
-
 def observation(grid: np.ndarray):
-    """Returns a 5x5 grid around the agent""" #TODO fix docstring
+    """    
+    #---------------------------------OBSERVATION 1---------------------------------
+    #Returns a 5x5 grid around the agent
+
+    # 1. Always return something, even if broken
+    if grid is None:
+        return np.zeros((5, 5, 3), dtype=np.uint8)
+
+    # 2. Simple 5x5 view (with edge padding)
+    try:
+        y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
+        padded = np.pad(
+            grid, ((2, 2), (2, 2), (0, 0)), mode="constant", constant_values=5
+        )
+        return padded[y : y + 5, x : x + 5]
+    except:
+        return np.zeros((5, 5, 3), dtype=np.uint8)
+    """
     
-    # OBS STRATEGY 2
+    #---------------------------------OBSERVATION 2---------------------------------
+
     #Always return something, even if broken
     if grid is None:
         return np.zeros((7,7,), dtype=np.uint8)
@@ -60,29 +81,6 @@ def observation(grid: np.ndarray):
     except:
         return np.zeros((7,7,), dtype=np.uint8)
 
-    
-    # OBS STRATEGY 1
-    # # 1. Always return something, even if broken
-    # if grid is None:
-    #     return np.zeros((5, 5, 3), dtype=np.uint8)
-
-    # # 2. Simple 5x5 view (with edge padding)
-    # try:
-    #     y, x = np.argwhere(np.all(grid == [160, 161, 161], axis=-1))[0]
-    #     padded = np.pad(
-    #         grid, ((2, 2), (2, 2), (0, 0)), mode="constant", constant_values=5
-    #     )
-    #     return padded[y : y + 5, x : x + 5]
-    # except:
-    #     return np.zeros((5, 5, 3), dtype=np.uint8)
-
-directions = {
-    0: 1,
-    1: 2,
-    2: 3,
-    3: 4,
-}
-
 
 def reward(info: dict) -> float:
     """
@@ -118,6 +116,12 @@ def reward(info: dict) -> float:
     # # NOTE - Kales reward stuff (WIP)
     # # if the agent is in the same row or column of future FOV
     # future_fov = []
+    # directions = {
+    # 0: 1,
+    # 1: 2,
+    # 2: 3,
+    # 3: 4,
+    #}
 
     # for enemy in enemies:
     #     x = enemy.x
@@ -164,7 +168,7 @@ def reward(info: dict) -> float:
     # return reward
 
     """
-    #---------------------------------REWARD 3---------------------------------
+    #---------------------------------REWARD 1---------------------------------
     reward = 0.0
 
     # Base reward for exploring
