@@ -163,8 +163,8 @@ def reward(info: dict) -> float:
 
     # return reward
 
-
-    #_______________________________ MILESTONE REWARD
+    """
+    #---------------------------------REWARD 3---------------------------------
     reward = 0.0
 
     # Base reward for exploring
@@ -172,22 +172,66 @@ def reward(info: dict) -> float:
         reward += 1.0
 
         # Set milestone rewards for covering 25%, 50%, 75% and 100% of the map
-        if total_covered_cells in [
-            int(0.25 * coverable_cells),
-            int(0.5 * coverable_cells),
-            int(0.75 * coverable_cells),
-            int(1.0 * coverable_cells),
-        ]:
-            reward += 1.0  # milestone bonus
+        if total_covered_cells == int(0.25 * coverable_cells):
+            reward += 1.0
+        elif total_covered_cells == int(0.5 * coverable_cells):
+            reward += 2.0
+        elif total_covered_cells == int(0.75 * coverable_cells):
+            reward += 3.0
+
+        # Proportional reward every step
+        coverage_ratio = total_covered_cells / coverable_cells
+        reward += 0.5 * coverage_ratio
 
     else:
         reward -= 0.1  # discourage idling or revisiting
 
-    # Step penalty
-    reward -= 0.01
 
-    # Game over penalty
-    if game_over and cells_remaining > 0:
-        reward -= 5.0
 
-    return reward
+    if cells_remaining == 0:
+        reward += 10.0 + steps_remaining * 0.1  # bonus for finishing fast
+    if game_over:
+        reward -= 10.0  # punished for failing before completion
+
+    return reward"""
+
+
+    """
+    #---------------------------------REWARD 3---------------------------------
+    reward = 0.0
+    grid_size = 10
+    agent_x = agent_pos % grid_size
+    agent_y = agent_pos // grid_size
+    agent_coord = (agent_y, agent_x)
+
+
+    in_enemy_fov = False
+    for enemy in enemies:
+        # Check if the agent is in the enemy's field of view
+        if agent_coord in enemy.get_fov_cells():
+            in_enemy_fov = True
+            break
+
+    # Bravery-based exploration
+    if new_cell_covered:
+        if in_enemy_fov:
+            reward += 1.5  # brave tile
+        else:
+            reward += 1.0  # normal tile
+    else:
+        reward -= 0.3 # been to this space already
+
+    # Proximity bravery THIS MIGHT CAUSE ISSUE WITH KEEPING THE AGENT NEARBY ENEMY AND NOT UNCOVERING THE MAP
+    if new_cell_covered:
+        for enemy in enemies:
+            dist = abs(agent_x - enemy.x) + abs(agent_y - enemy.y)
+            if 1 <= dist <= 4:
+                reward += 0.15  # flirting with danger
+
+    if cells_remaining == 0:
+        reward += 15.0 + 0.1 * steps_remaining # bonus finishing early 
+
+    if game_over:
+        reward -= 10.0
+
+    return reward"""
