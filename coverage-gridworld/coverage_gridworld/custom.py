@@ -39,20 +39,22 @@ def observation(grid: np.ndarray):
                     g = flattened.pop(0)
                     b = flattened.pop(0)
                     
-                    #if black or red
-                    if ((r == 0 and g == 0 and b == 0) or 
-                        (r == 255 and g == 0 and b == 0)):
+                    #if black
+                    if (r == 0 and g == 0 and b == 0):
                         translated[i].append(0) # need to cover
-
-                    #if white, grey, or light-red
+                    #if red
+                    elif (r == 255 and g == 0 and b == 0):
+                        translated[i].append(1) # need to cover but danger area
+                    #if white, grey
                     elif ((r == 255 and g == 255 and b == 255) or 
-                        (r == 160 and g == 161 and b == 161) or
-                        (r == 255 and g == 127 and b == 127)):
-                        translated[i].append(1) # already covered but walkable
-
+                          (r == 160 and g == 161 and b == 161)):
+                        translated[i].append(2) # already covered but walkable
+                    # light-red
+                    elif (r == 255 and g == 127 and b == 127):
+                        translated[i].append(3) # already covered but walkable dangerously
                     #if brown, or green
                     else:
-                        translated[i].append(2)  # can't go there
+                        translated[i].append(4)  # can't go there
 
         return np.array(translated)
     except:
