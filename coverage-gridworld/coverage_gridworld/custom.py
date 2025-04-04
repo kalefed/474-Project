@@ -4,9 +4,6 @@ import gymnasium as gym
 """
 Feel free to modify the functions below and experiment with different environment configurations.
 """
-unexplored = []
-
-
 def observation_space(env: gym.Env) -> gym.spaces.Space:
     """
     #---------------------------------OBSERVATION 1---------------------------------
