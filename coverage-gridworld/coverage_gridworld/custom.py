@@ -171,30 +171,30 @@ def reward(info: dict) -> float:
 
                 future_fovs.append((fov_col, fov_row))
 
-        # Reward for game_over with no cells remaining and penalize if agent is killed by ghost
-        if cells_remaining == 0:
-            return 50
+    # Reward for game_over with no cells remaining and penalize if agent is killed by ghost
+    if cells_remaining == 0:
+        return 50
 
-        if game_over:
-            return -50.0
+    if game_over:
+        return -50.0
 
-        if steps_remaining == 0:
-            return -50.0
+    if steps_remaining == 0:
+        return -50.0
 
-        # calculate the total accumulated reward
-        reward = 0
+    # calculate the total accumulated reward
+    reward = 0
 
-        if new_cell_covered:
-            reward += 3.0
+    if new_cell_covered:
+        reward += 3.0
 
-            # further encourage the agent to discover cells near the enemies
-            if unflattened_agent_pos in future_fovs:
-                reward += 4.0
+        # further encourage the agent to discover cells near the enemies
+        if unflattened_agent_pos in future_fovs:
+            reward += 4.0
 
-        else:
-            reward -= 1.0
+    else:
+        reward -= 1.0
 
-        return reward
+    return reward
 
     """
     #---------------------------------REWARD 3---------------------------------
