@@ -16,15 +16,7 @@ def observation_space(env: gym.Env) -> gym.spaces.Space:
     """
     # ---------------------------------OBSERVATION 2---------------------------------
     # Defines a 7x7 cell-type observation space
-    return gym.spaces.Box(
-        low=0,
-        high=1,
-        shape=(
-            7,
-            7,
-        ),
-        dtype=np.uint8,
-    )
+    return gym.spaces.Box(low=0, high=1, shape=(7, 7,), dtype=np.uint8)
 
 
 def observation(grid: np.ndarray):
@@ -51,13 +43,7 @@ def observation(grid: np.ndarray):
 
     # Always return something, even if broken
     if grid is None:
-        return np.zeros(
-            (
-                7,
-                7,
-            ),
-            dtype=np.uint8,
-        )
+        return np.zeros((7,7,), dtype=np.uint8)
 
     try:
         # get position of agent
@@ -67,15 +53,7 @@ def observation(grid: np.ndarray):
         )
         # have a 7x7 window of visibility surrounding the agent
         window = padded[y : y + 7, x : x + 7]
-        translated = [
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-        ]  # the info will be translated to 7x7 rather than 7x7x3
+        translated = [[],[],[],[],[],[],[]] # the info will be translated to 7x7 rather than 7x7x3
         flattened = list(np.ravel(window))  # get all vals in order
         while len(flattened) > 0:
             for i in range(7):
@@ -83,36 +61,28 @@ def observation(grid: np.ndarray):
                     r = flattened.pop(0)
                     g = flattened.pop(0)
                     b = flattened.pop(0)
-
-                    # if black
-                    if r == 0 and g == 0 and b == 0:
-                        translated[i].append(0)  # need to cover
-                    # if red
-                    elif r == 255 and g == 0 and b == 0:
-                        translated[i].append(1)  # need to cover but danger area
-                    # if white, grey
-                    elif (r == 255 and g == 255 and b == 255) or (
-                        r == 160 and g == 161 and b == 161
-                    ):
-                        translated[i].append(2)  # already covered but walkable
+                    
+                    #if black
+                    if (r == 0 and g == 0 and b == 0):
+                        translated[i].append(0) # need to cover
+                    #if red
+                    elif (r == 255 and g == 0 and b == 0):
+                        translated[i].append(1) # need to cover but danger area
+                    #if white, grey
+                    elif ((r == 255 and g == 255 and b == 255) or 
+                          (r == 160 and g == 161 and b == 161)):
+                        translated[i].append(2) # already covered but walkable
                     # light-red
-                    elif r == 255 and g == 127 and b == 127:
-                        translated[i].append(
-                            3
-                        )  # already covered but walkable dangerously
-                    # if brown, green, or padding
+                    elif (r == 255 and g == 127 and b == 127):
+                        translated[i].append(3) # already covered but walkable dangerously
+                    #if brown, green, or padding
                     else:
                         translated[i].append(4)  # can't go there
 
         return np.array(translated)
     except:
-        return np.zeros(
-            (
-                7,
-                7,
-            ),
-            dtype=np.uint8,
-        )
+        return np.zeros((7,7,), dtype=np.uint8)
+
 
 
 def reward(info: dict) -> float:
